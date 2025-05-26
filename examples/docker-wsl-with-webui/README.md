@@ -15,7 +15,7 @@ This guide explains how to set up and run TripoSG with a web interface using Doc
 1. Copy the necessary files to the project root directory:
 
 ```bash
-cp Dockerfile docker-compose.yml app.py requirements.txt ../../
+rsync -aP examples/docker-wsl-with-webui/ ./
 ```
 
 2. Build the Docker image in the project root directory:
@@ -60,40 +60,3 @@ The following directories are mounted:
 2. Upload an image or use the scribble interface
 3. Configure generation parameters
 4. Click "Generate" to create 3D models
-
-## Troubleshooting
-
-### Common Issues
-
-1. CUDA Initialization Error
-   - Ensure NVIDIA Container Toolkit is properly installed
-   - Verify GPU is visible in WSL2
-   - Check NVIDIA drivers are up to date
-
-2. OpenCV Dependencies
-   - If you encounter `libGL.so.1` errors, ensure the container is rebuilt with the latest Dockerfile
-
-3. Port Conflicts
-   - If port 7860 is already in use, modify the port mapping in docker-compose.yml
-
-### Debugging Commands
-
-Check GPU availability:
-```bash
-docker exec triposg nvidia-smi
-```
-
-View container logs:
-```bash
-docker-compose logs -f
-```
-
-## Security Notes
-
-- The WebUI is exposed on all interfaces (0.0.0.0)
-- Consider using a reverse proxy for production deployment
-- Keep your NVIDIA drivers and Docker updated for security
-
-## License
-
-This setup is subject to the same license as the TripoSG project. See the main repository for details. 
