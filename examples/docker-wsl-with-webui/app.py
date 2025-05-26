@@ -9,16 +9,15 @@ from briarmbg import BriaRMBG
 from huggingface_hub import snapshot_download
 import uuid
 
-# デバイスとデータ型の設定
+
 device = "cuda"
 dtype = torch.float16
 
-# グローバル変数としてモデルを保持
 rmbg_net = None
 pipe = None
 pipe_scribble = None
 
-# 事前学習済みモデルのダウンロード
+
 def download_models():
     triposg_weights_dir = "pretrained_weights/TripoSG"
     triposg_scribble_weights_dir = "pretrained_weights/TripoSG-scribble"
@@ -31,34 +30,29 @@ def download_models():
     if not os.path.exists(rmbg_weights_dir):
         snapshot_download(repo_id="briaai/RMBG-1.4", local_dir=rmbg_weights_dir)
 
-# モデルの初期化
+
 def init_models():
     global rmbg_net, pipe, pipe_scribble
     
     if rmbg_net is None:
-        # RMBGモデルの初期化
         rmbg_net = BriaRMBG.from_pretrained("pretrained_weights/RMBG-1.4").to(device)
         rmbg_net.eval()
 
     if pipe is None:
-        # TripoSGモデルの初期化
         pipe = TripoSGPipeline.from_pretrained("pretrained_weights/TripoSG").to(device, dtype)
     
     if pipe_scribble is None:
-        # TripoSG-scribbleモデルの初期化
         pipe_scribble = TripoSGScribblePipeline.from_pretrained("pretrained_weights/TripoSG-scribble").to(device, dtype)
     
     return rmbg_net, pipe, pipe_scribble
 
-# 画像から3Dモデルを生成
+
 def generate_3d_from_image(image, seed, num_inference_steps, guidance_scale, faces, session_id=None):
     global rmbg_net, pipe
     if rmbg_net is None or pipe is None:
         rmbg_net, pipe, _ = init_models()
 
     sid = str(uuid.uuid4()) if session_id is None else session_id
-
-    # image(PIL.Image) -> image_path
     image_path = os.path.join(os.getcwd(), f"input_{sid}.png")
     image.save(image_path)
     
@@ -76,7 +70,7 @@ def generate_3d_from_image(image, seed, num_inference_steps, guidance_scale, fac
     mesh.export(output_path)
     return output_path
 
-# スケッチとプロンプトから3Dモデルを生成
+
 def generate_3d_from_scribble(image, prompt, seed, num_inference_steps, scribble_conf, prompt_conf, session_id=None):
     global pipe_scribble
     if pipe_scribble is None:
@@ -100,7 +94,7 @@ def generate_3d_from_scribble(image, prompt, seed, num_inference_steps, scribble
     mesh.export(output_path)
     return output_path
 
-# Gradioインターフェースの作成
+
 def create_interface():
     with gr.Blocks(title="TripoSG WebUI") as demo:
         gr.Markdown("# TripoSG WebUI")
@@ -156,10 +150,7 @@ def create_interface():
     return demo
 
 if __name__ == "__main__":
-    # モデルのダウンロード
     download_models()
-    
-    # Gradioインターフェースの作成と起動
     demo = create_interface()
     demo.launch(
         server_name="0.0.0.0",
